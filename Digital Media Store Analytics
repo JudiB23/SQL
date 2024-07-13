@@ -1,0 +1,134 @@
+#In this analysis, I used SQL to query a database that represents a digital media store and includes tables for artists, albums, media tracks, invoices, and customers. 
+
+--Customers who are not in the US 
+SELECT FirstName, LastName, CustomerId, Country
+FROM chinook.customers
+WHERE Country <> "USA"
+;
+--Only customers from Brazil
+SELECT FirstName, LastName, CustomerId, Country
+FROM chinook.customers
+WHERE Country = "Brazil"
+;
+--Find the invoices of customers who are from Brazil 
+SELECT cust.FirstName, cust.LastName, ivs.InvoiceId, ivs.InvoiceDate, ivs.BillingCountry
+FROM chinook.invoices ivs
+LEFT JOIN chinook.customers cust
+ON cust.CustomerId = ivs.CustomerId
+WHERE cust.Country = "Brazil"
+;
+--Show the Employees who are Sales Agents
+SELECT *
+FROM chinook.employees
+WHERE Title = 'Sales Support Agent'
+;
+--Find a unique/distinct list of billing countries from the Invoice table. 
+SELECT distinct BillingCountry
+FROM chinook.invoices
+;
+--Show the invoices associated with each sales agent. 
+SELECT emp.LastName, emp.FirstName, inv.InvoiceId
+FROM chinook.employees emp
+INNER JOIN chinook.customers cust
+ON emp.EmployeeId = cust.SupportRepId
+INNER JOIN chinook.invoices inv 
+ON inv.CustomerId = cust.CustomerId
+ORDER BY cust.SupportRepId
+;
+--Show the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers. 
+SELECT inv.Total, cust.FirstName, cust.LastName, cust.Country, emp.LastName agent, emp.FirstName agent 
+FROM chinook.invoices inv
+JOIN chinook.customers cust
+ON cust.CustomerId = inv.CustomerId
+JOIN chinook.employees emp
+ON emp.EmployeeId=cust.SupportRepId
+;
+--How many invoices were there in 2009?
+SELECT COUNT (invoiceDate)
+FROM chinook.invoices
+WHERE InvoiceDate like "2009%"
+;
+--What are the total sales for 2009?
+SELECT SUM(Total)
+FROM chinook.invoices
+WHERE InvoiceDate like "2009%"
+;
+--Show the purchased track name with each invoice line ID.
+SELECT inv.InvoiceLineId, track.Name
+FROM chinook.invoice_items inv
+JOIN chinook.tracks track
+ON track.TrackId = inv.TrackId
+;
+--Show the purchased track name and artist name with each invoice line ID. 
+SELECT inv.InvoiceLineId, track.Name as Track, art.Name as Artist
+FROM chinook.invoice_items inv
+LEFT JOIN chinook.tracks track
+ON track.TrackId = inv.TrackId
+JOIN chinook.albums alb
+ON alb.AlbumId = track.AlbumId
+LEFT JOIN chinook.artists art
+ON alb.ArtistId = art.ArtistId
+;
+--Show all tracks, including the Album name, Media type, and Genre
+SELECT t.Name as track, a.Title as album, m.name as media_type, g.name as genre
+FROM chinook.tracks t
+JOIN chinook.albums a
+ON t.AlbumId = a.AlbumId
+JOIN chinook.media_types m
+ON t.MediaTypeId = m.MediaTypeId
+JOIN chinook.genres g
+ON t.GenreId = g.GenreId
+;
+--Show the total sales made by each sales agent.
+SELECT ROUND (SUM(inv.Total),2) as 'total sales', emp.LastName, emp.FirstName
+FROM chinook.invoices inv
+JOIN chinook.customers cust
+ON cust.CustomerID = inv.CustomerId
+JOIN chinook.employees emp
+ON cust.SupportRepID = emp.EmployeeId
+GROUP BY emp.EmployeeId
+;
+--Which sales agent made the most dollars in sales in 2009? 
+SELECT ROUND (SUM(inv.Total),2) as 'total 2009 sales', emp.LastName, emp.FirstName
+FROM chinook.invoices inv
+JOIN chinook.customers cust
+ON cust.CustomerID = inv.CustomerId
+JOIN chinook.employees emp
+ON cust.SupportRepID = emp.EmployeeId
+WHERE inv.InvoiceDate like '2009%'
+GROUP BY emp.EmployeeId
+ORDER BY ROUND (SUM(inv.Total),2) desc 
+LIMIT 1
+;
+--Which tracks were purchased the most times in Canada?
+SELECT t.Name, COUNT(ii.TrackId) as 'Times Purchased'
+FROM chinook.invoice_items ii
+JOIN chinook.invoices i
+ON ii.InvoiceId=i.InvoiceId
+JOIN chinook.tracks t
+ON t.TrackId=ii.TrackId
+WHERE i.BillingCountry = 'Canada'
+GROUP BY ii.TrackId
+ORDER BY COUNT(ii.TrackId) desc
+LIMIT 2
+;
+
+--Which countries purchased the most items in dollars?
+SELECT ROUND(SUM(Total)) as 'Total Sales', BillingCountry
+FROM chinook.invoices
+GROUP BY BillingCountry
+ORDER BY ROUND(SUM(Total)) desc
+;
+--Which genres were purchased the most in France? 
+SELECT g.Name as genre, COUNT(ii.TrackId) as 'times purchased'
+FROM chinook.invoice_items ii
+JOIN chinook.invoices i
+ON ii.InvoiceId=i.InvoiceId
+JOIN chinook.tracks t
+ON t.TrackId=ii.TrackId
+JOIN chinook.genres g
+ON t.GenreId=g.GenreId
+WHERE i.BillingCountry = 'France'
+GROUP BY g.Name
+ORDER BY COUNT(g.Name) desc
+;
