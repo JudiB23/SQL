@@ -1,0 +1,36 @@
+#For this project, I performed analytics on Spotify 2021 data using SQL. 
+--What are the top 10 most popular songs? 
+SELECT track_name, artist_name, popularity
+FROM BIT_DB.Spotifydata
+ORDER BY popularity desc
+LIMIT 10
+;
+--Who are the top 10 artists by popularity, and what is the average popularity of their songs?
+ SELECT distinct artist_name, AVG(popularity)
+ FROM BIT_DB.Spotifydata
+ GROUP BY artist_name
+ ORDER BY popularity desc
+ LIMIT 10
+ ;
+--What is the longest song, and how long is it? 
+SELECT track_name, duration_ms
+FROM BIT_DB.Spotifydata
+ORDER BY duration_ms desc
+LIMIT 1
+;
+--Which artist has the shortest song, and what is it? 
+SELECT artist_name, track_name, MIN(duration_ms) as duration_ms
+FROM BIT_DB.Spotifydata
+;
+--Which artists' songs have the highest average danceability, and what are those artists' songs' average danceability? 
+SELECT artist_name, avg(danceability)
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY avg(danceability) desc
+LIMIT 5
+;
+--What is the average energy of the most popular songs? 
+SELECT AVG(energy)
+FROM BIT_DB.Spotifydata
+WHERE popularity>=92
+;
